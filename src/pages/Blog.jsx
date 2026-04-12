@@ -27,7 +27,12 @@ export default function Blog() {
       .catch(() => setCurrentUser(null));
   }, []);
 
-  const handleDelete = async (objectId) => {
+  const handleDelete = async (e, objectId) => {
+    // e.preventDefault dan e.stopPropagation penting agar saat klik Delete, 
+    // link halaman detail tidak ikut terpicu
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (window.confirm("Apakah Anda yakin ingin menghapus artikel ini?")) {
       try {
         await Backendless.Data.of('Blogs').remove({ objectId: objectId });
@@ -58,11 +63,12 @@ export default function Blog() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '30px' }}>
           {posts.map((p) => (
-            <div key={p.objectId} className="card-base" style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+            /* Menambahkan position: relative pada card-base */
+            <div key={p.objectId} className="card-base" style={{ position: 'relative', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
               
               {currentUser && (
                 <button 
-                  onClick={() => handleDelete(p.objectId)}
+                  onClick={(e) => handleDelete(e, p.objectId)}
                   style={{
                     position: 'absolute',
                     top: '20px',
@@ -75,7 +81,7 @@ export default function Blog() {
                     fontSize: '10px',
                     fontWeight: '800',
                     cursor: 'pointer',
-                    zIndex: 2
+                    zIndex: 10 /* Pastikan z-index lebih tinggi dari link */
                   }}
                 >
                   DELETE
@@ -84,18 +90,36 @@ export default function Blog() {
 
               <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase' }}>{p.category}</span>
               
+              {/* Trik Stretched Link: Link ini akan menutupi seluruh area card-base */}
               <Link to={`/blog/${p.objectId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <h3 style={{ margin: '15px 0', cursor: 'pointer' }}>{p.title}</h3>
+                <span style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0, 
+                    right: 0, 
+                    bottom: 0, 
+                    zIndex: 1 
+                }}></span>
+                <h3 style={{ margin: '15px 0' }}>{p.title}</h3>
               </Link>
               
               <p style={{ color: 'var(--text-muted)', flexGrow: 1, marginBottom: '20px' }}>{p.excerpt}</p>
               
-              <div style={{ marginTop: 'auto', paddingTop: '15px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ 
+                marginTop: 'auto', 
+                paddingTop: '15px', 
+                borderTop: '1px solid var(--border)', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                position: 'relative',
+                zIndex: 2 /* Supaya teks di bawah tetap terlihat di atas link transparan */
+              }}>
                 <span style={{ fontSize: '11px', fontWeight: '800' }}>BY {p.author?.toUpperCase() || 'ADMIN'}</span>
                 
-                <Link to={`/blog/${p.objectId}`} style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textDecoration: 'none' }}>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)' }}>
                   READ ANALYSIS →
-                </Link>
+                </span>
               </div>
             </div>
           ))}
