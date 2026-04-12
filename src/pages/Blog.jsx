@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Backendless from 'backendless';
 
 export default function Blog() {
@@ -8,7 +9,6 @@ export default function Blog() {
 
   const fetchPosts = async () => {
     try {
-      // Ambil data blog terbaru
       const data = await Backendless.Data.of('Blogs').find({
         options: { sortBy: ['created DESC'] } 
       });
@@ -22,7 +22,6 @@ export default function Blog() {
 
   useEffect(() => {
     fetchPosts();
-    // Cek apakah yang melihat halaman ini adalah Admin yang sedang login
     Backendless.UserService.getCurrentUser()
       .then(user => setCurrentUser(user))
       .catch(() => setCurrentUser(null));
@@ -33,7 +32,7 @@ export default function Blog() {
       try {
         await Backendless.Data.of('Blogs').remove({ objectId: objectId });
         alert("Artikel berhasil dihapus!");
-        fetchPosts(); // Refresh daftar blog setelah hapus
+        fetchPosts();
       } catch (err) {
         alert("Gagal menghapus: " + err.message);
       }
@@ -42,15 +41,25 @@ export default function Blog() {
 
   return (
     <div className="fade-in section-padding">
-      <span className="header-badge">Industry Insights</span>
-      <h1 style={{ marginBottom: '40px' }}>The Zaamera <span className="text-accent">Archive.</span></h1>
-      
-      {loading ? <h2>Syncing Archive...</h2> : (
+      <header style={{ marginBottom: '60px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '20px' }}>
+        <div>
+          <span className="header-badge">Archive & Insights</span>
+          <h1>Engineering <br/><span className="text-accent">Perspectives.</span></h1>
+        </div>
+        <p style={{ maxWidth: '400px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          Explore our latest technical audits, compliance updates, and aerospace innovations from the Zaamera laboratory.
+        </p>
+      </header>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '100px 0' }}>
+          <h2 style={{ color: 'var(--accent)' }}>Synchronizing Database...</h2>
+        </div>
+      ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '30px' }}>
           {posts.map((p) => (
-            <div key={p.objectId} className="card-base" style={{ position: 'relative' }}>
+            <div key={p.objectId} className="card-base" style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
               
-              {/* Tombol Delete: Hanya muncul jika Admin sedang login */}
               {currentUser && (
                 <button 
                   onClick={() => handleDelete(p.objectId)}
@@ -65,7 +74,8 @@ export default function Blog() {
                     padding: '5px 10px',
                     fontSize: '10px',
                     fontWeight: '800',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    zIndex: 2
                   }}
                 >
                   DELETE
@@ -73,14 +83,28 @@ export default function Blog() {
               )}
 
               <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase' }}>{p.category}</span>
-              <h3 style={{ margin: '15px 0' }}>{p.title}</h3>
-              <p style={{ color: 'var(--text-muted)' }}>{p.excerpt}</p>
               
-              <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid var(--border)', fontSize: '11px', fontWeight: '800' }}>
-                BY {p.author?.toUpperCase() || 'ADMIN'}
+              <Link to={`/blog/${p.objectId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <h3 style={{ margin: '15px 0', cursor: 'pointer' }}>{p.title}</h3>
+              </Link>
+              
+              <p style={{ color: 'var(--text-muted)', flexGrow: 1, marginBottom: '20px' }}>{p.excerpt}</p>
+              
+              <div style={{ marginTop: 'auto', paddingTop: '15px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: '800' }}>BY {p.author?.toUpperCase() || 'ADMIN'}</span>
+                
+                <Link to={`/blog/${p.objectId}`} style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textDecoration: 'none' }}>
+                  READ ANALYSIS →
+                </Link>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {posts.length === 0 && !loading && (
+        <div style={{ textAlign: 'center', padding: '100px 0', border: '2px dashed #eee', borderRadius: '20px' }}>
+          <p style={{ color: 'var(--text-muted)' }}>No articles found in the archive.</p>
         </div>
       )}
     </div>

@@ -8,6 +8,7 @@ import Services from './pages/Services';
 import AboutUs from './pages/AboutUs';
 import Teams from './pages/Teams';
 import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail'; // Pastikan file ini sudah dibuat
 import Login from './pages/Login';
 import CreateBlog from './pages/CreateBlog';
 
@@ -17,7 +18,6 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Fungsi untuk sinkronisasi status user antara Backendless dan React State
   const checkUser = async () => {
     try {
       const currentUser = await Backendless.UserService.getCurrentUser();
@@ -27,7 +27,6 @@ function App() {
     }
   };
 
-  // Cek user saat aplikasi pertama kali dibuka
   useEffect(() => {
     checkUser();
   }, []);
@@ -42,20 +41,24 @@ function App() {
     }
   };
 
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
     <Router>
-      <div className={`app-container ${isMenuOpen ? 'menu-active' : ''}`}>
+      <div className="app-container">
+        <SpeedInsights />
         <nav className="navbar">
-          <Link to="/" className="nav-logo" onClick={closeMenu}>Zaamera</Link>
-          
-          <div className={`hamburger ${isMenuOpen ? 'is-active' : ''}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <span className="line"></span><span className="line"></span><span className="line"></span>
+          <Link to="/" className="nav-logo" onClick={closeMenu}>
+            ZAAMERA<span className="text-accent">.</span>
+          </Link>
+
+          <div className={`hamburger ${isMenuOpen ? 'active' : ''}`} onClick={toggleMenu}>
+            <span></span><span></span><span></span>
           </div>
 
-          <div className={`nav-links ${isMenuOpen ? 'show' : ''}`}>
-            <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
+          <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
+            <NavLink to="/" onClick={closeMenu}>Home</NavLink>
             <NavLink to="/services" onClick={closeMenu}>Services</NavLink>
             <NavLink to="/aboutus" onClick={closeMenu}>About Us</NavLink>
             <NavLink to="/teams" onClick={closeMenu}>Teams</NavLink>
@@ -79,7 +82,7 @@ function App() {
             <Route path="/aboutus" element={<AboutUs />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/blog" element={<Blog />} />
-            {/* Mengirim fungsi checkUser sebagai prop ke Login.jsx */}
+            <Route path="/blog/:id" element={<BlogDetail />} /> 
             <Route path="/login" element={<Login onLoginSuccess={checkUser} />} />
             <Route path="/create-blog" element={<CreateBlog />} />
           </Routes>
@@ -90,7 +93,6 @@ function App() {
           <p>© 2026 Crafted by Bagus.</p>
         </footer>
       </div>
-      <SpeedInsights />
     </Router>
   );
 }
